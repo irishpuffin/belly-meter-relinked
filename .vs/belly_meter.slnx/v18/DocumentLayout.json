@@ -1,0 +1,53 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\thatc\\Bellymeter\\belly_meter\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thatc\\Bellymeter\\belly_meter\\lib\\main.dart||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:lib\\main.dart||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\thatc\\Bellymeter\\belly_meter\\pubspec.yaml||{06C066C6-04A2-4E5D-8202-439FD4234EF1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:pubspec.yaml||{06C066C6-04A2-4E5D-8202-439FD4234EF1}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "main.dart",
+              "DocumentMoniker": "C:\\Users\\thatc\\Bellymeter\\belly_meter\\lib\\main.dart",
+              "RelativeDocumentMoniker": "lib\\main.dart",
+              "ToolTip": "C:\\Users\\thatc\\Bellymeter\\belly_meter\\lib\\main.dart",
+              "RelativeToolTip": "lib\\main.dart",
+              "ViewState": "AgIAAKsBAAAAAAAAAAAAALgBAAAbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2026-01-17T03:28:11.33Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "pubspec.yaml",
+              "DocumentMoniker": "C:\\Users\\thatc\\Bellymeter\\belly_meter\\pubspec.yaml",
+              "RelativeDocumentMoniker": "pubspec.yaml",
+              "ToolTip": "C:\\Users\\thatc\\Bellymeter\\belly_meter\\pubspec.yaml",
+              "RelativeToolTip": "pubspec.yaml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
+              "WhenOpened": "2026-01-17T03:27:18.706Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
