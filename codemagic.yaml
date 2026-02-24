@@ -15,6 +15,10 @@
         vars:
           APP_ID: 6745463805
       scripts:
+        - name: Show Flutter & Dart versions
+          script: |
+            flutter --version
+            dart --version
         - name: Set up code signing settings on Xcode project
           script: |
             xcode-project use-profiles
