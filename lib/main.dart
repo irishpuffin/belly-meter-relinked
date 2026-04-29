@@ -1,11 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:confetti/confetti.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-void main() => runApp(const BellyMeterApp());
+  // Only initialize ads on mobile
+  if (!kIsWeb) {
+    await MobileAds.instance.initialize();
+  }
+
+  runApp(const BellyMeterApp());
+}
 
 class BellyMeterApp extends StatelessWidget {
   const BellyMeterApp({super.key});
@@ -232,6 +242,8 @@ class BellyHomePage extends StatefulWidget {
 }
 
 class _BellyHomePageState extends State<BellyHomePage> with TickerProviderStateMixin {
+  late BannerAd _bannerAd;
+  bool _isBannerReady = false;
   double bellyFullness = 0.0;
   double targetFullness = 0.0;
   double _startFullness = 0.0;
@@ -294,11 +306,29 @@ DateTime? _fillStartTime;
         (targetFullness - _startFullness) * _fillController.value;
   });
 });
+_bannerAd = BannerAd(
+  adUnitId: 'ca-app-pub-3940256099942544/2934735716', // iOS TEST banner ad
+  size: AdSize.banner,
+  request: const AdRequest(),
+  listener: BannerAdListener(
+    onAdLoaded: (ad) {
+      setState(() {
+        _isBannerReady = true;
+      });
+    },
+    onAdFailedToLoad: (ad, error) {
+      ad.dispose();
+      debugPrint('Banner ad failed to load: $error');
+    },
+  ),
+);
 
+_bannerAd.load();
   }
 
   @override
   void dispose() {
+    _bannerAd.dispose();
     _confettiController.dispose();
     _pulseController.dispose();
     _waveController.dispose();
@@ -351,6 +381,7 @@ Future<void> startScanning(double fullness) async {
           playSound('sounds/ding.mp3');
           showHappyFace = true;
         } else {
+          playSound('sounds/fail.mp3');
           showHappyFace = false;
         }
       });
@@ -360,169 +391,134 @@ Future<void> startScanning(double fullness) async {
 
 
 
-  @override
-  Widget build(BuildContext context) {
-    final bellyRect = avatarBellyMap[widget.avatarPath];
+@override
+Widget build(BuildContext context) {
+  final bellyRect = avatarBellyMap[widget.avatarPath];
 
+  return Scaffold(
+    appBar: AppBar(title: const Text('Belly Meter')),
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Belly Meter')),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          // These MUST match the pixel size your bellyRect numbers were measured on
-const double baseW = 768;
-const double baseH = 1024;
+    body: LayoutBuilder(
+      builder: (context, constraints) {
+        const double baseW = 768;
+        const double baseH = 1024;
 
-// This matches BoxFit.contain scaling
-final double scale = (constraints.maxWidth / baseW);
-final double scaleH = (constraints.maxHeight / baseH);
-final double containScale = scale < scaleH ? scale : scaleH;
+        final double scale = constraints.maxWidth / baseW;
+        final double scaleH = constraints.maxHeight / baseH;
+        final double containScale = scale < scaleH ? scale : scaleH;
 
-// This is the size the avatar is actually drawn on screen
-final double drawnW = baseW * containScale;
-final double drawnH = baseH * containScale;
+        final double drawnW = baseW * containScale;
+        final double drawnH = baseH * containScale;
 
-// Because the avatar is centered, it gets "pushed" by these offsets
-final double offsetX = (constraints.maxWidth - drawnW) / 2;
-final double offsetY = (constraints.maxHeight - drawnH) / 2;
+        final double offsetX = (constraints.maxWidth - drawnW) / 2;
+        final double offsetY = (constraints.maxHeight - drawnH) / 2;
 
-
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-if (bellyRect != null)
-
-  Positioned(
-left: offsetX + (bellyRect.left * containScale),
-top:  offsetY + (bellyRect.top  * containScale),
-    child: SizedBox(
-width: bellyRect.width * containScale,
-height: bellyRect.height * containScale,
-
-child: ClipOval(
-  child: Stack(
-    children: [
-      Positioned(
-        left: 0,
-        right: 0,
-        bottom: 0,
-        height: (bellyRect.height * containScale) *
-            (bellyFullness / 100).clamp(0.0, 1.0),
-        child: Container(
-          color: Colors.green.withOpacity(0.45),
-        ),
-      ),
-    ],
-  ),
-),
-
-    ),
-  ),
-              // Avatar Image
-             Center(
-  child: SizedBox(
-    width: drawnW,
-    height: drawnH,
-    child: Image.asset(widget.avatarPath, fit: BoxFit.contain),
-  ),
-),
-
-              // Scan Animation Overlay
-if (isScanning)
-  Positioned.fill(
-    child: IgnorePointer(
-      child: Container(
-        color: Colors.black.withOpacity(0.15), // was 0.8
-        child: Center(
-          child: Image.asset('assets/images/scan.gif', fit: BoxFit.contain),
-        ),
-      ),
-    ),
-  ),
-
-
-              // "Good Job" Bubble
-              if (showHappyFace)
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Container(
-                    margin: const EdgeInsets.only(top: 40),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.greenAccent,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2)),
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            if (bellyRect != null)
+              Positioned(
+                left: offsetX + (bellyRect.left * containScale),
+                top: offsetY + (bellyRect.top * containScale),
+                child: SizedBox(
+                  width: bellyRect.width * containScale,
+                  height: bellyRect.height * containScale,
+                  child: ClipOval(
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          height: (bellyRect.height * containScale) *
+                              (bellyFullness / 100).clamp(0.0, 1.0),
+                          child: Container(
+                            color: Colors.green.withOpacity(0.45),
+                          ),
+                        ),
                       ],
                     ),
-                    child: const Text('Good Job!', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-//Positioned(
-  //top: 70,
-//  right: 10,
-//  child: Container(
- //   padding: const EdgeInsets.all(8),
- //   color: Colors.black45,
- //   child: Column(
- //     children: [
-//        Text("X:${_bellyNudgeX.toInt()}  Y:${_bellyNudgeY.toInt()}",
-  //          style: const TextStyle(color: Colors.white)),
-  //      const SizedBox(height: 6),
-  //      Row(
-  //        children: [
-  //          IconButton(
-   //           onPressed: () => setState(() => _bellyNudgeX -= 5),
-   //           icon: const Icon(Icons.arrow_left, color: Colors.white),
-   //         ),
-    //        IconButton(
-   //          onPressed: () => setState(() => _bellyNudgeX += 5),
-    //          icon: const Icon(Icons.arrow_right, color: Colors.white),
-    //        ),
-    //      ],
-   //     ),
-  //      Row(
-  //        children: [
- //           IconButton(
-  //            onPressed: () => setState(() => _bellyNudgeY -= 5),
-  //            icon: const Icon(Icons.arrow_upward, color: Colors.white),
-  //          ),
-  //          IconButton(
-   //           onPressed: () => setState(() => _bellyNudgeY += 5),
-  //            icon: const Icon(Icons.arrow_downward, color: Colors.white),
-    //        ),
- //         ],
-  //      ),
-//      ],
- //   ),
- // ),
-//),
-
-              // Scan Button
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orangeAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
-                      textStyle: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900, letterSpacing: 1.5),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
-                      elevation: 8,
-                    ),
-                    onPressed: showParentInputDialog,
-                    child: const Text('Ready to Scan!'),
                   ),
                 ),
               ),
-            ],
-          );
-        },
-      ),
-    );
-  }
+
+            Center(
+              child: SizedBox(
+                width: drawnW,
+                height: drawnH,
+                child: Image.asset(widget.avatarPath, fit: BoxFit.contain),
+              ),
+            ),
+
+            if (showHappyFace)
+              Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  margin: const EdgeInsets.only(top: 40),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.greenAccent,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 4,
+                        offset: Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'Good Job!',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.orangeAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40,
+                      vertical: 30,
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(40),
+                    ),
+                    elevation: 8,
+                  ),
+                  onPressed: showParentInputDialog,
+                  child: const Text('Ready to Scan!'),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+
+    bottomNavigationBar: _isBannerReady
+        ? SizedBox(
+            height: _bannerAd.size.height.toDouble(),
+            width: _bannerAd.size.width.toDouble(),
+            child: AdWidget(ad: _bannerAd),
+          )
+        : null,
+  );
+}
   void showParentInputDialog() {
     _parentSelectedFullness = bellyFullness;
     showDialog(
